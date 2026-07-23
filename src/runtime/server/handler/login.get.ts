@@ -10,6 +10,7 @@ import {
   configMerger,
   convertObjectToSnakeCase,
   oidcErrorHandler,
+  resolveProviderUrls,
   useOidcLogger,
 } from '../utils/oidc'
 import { sanitizeCallbackRedirectUrl } from '../utils/redirect'
@@ -24,10 +25,10 @@ function loginEventHandler() {
   const logger = useOidcLogger()
   return eventHandler(async (event: H3Event) => {
     const provider = event.path.split('/')[2] as ProviderKeys
-    const config = configMerger(
+    const config = resolveProviderUrls(configMerger(
       useRuntimeConfig().oidc.providers[provider] as OidcProviderConfig,
       providerPresets[provider],
-    )
+    ))
     const validationResult = validateConfig(config, config.requiredProperties)
 
     if (!validationResult.valid) {

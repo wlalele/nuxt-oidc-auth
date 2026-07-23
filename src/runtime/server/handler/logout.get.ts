@@ -5,17 +5,17 @@ import { useRuntimeConfig } from '#imports'
 import { eventHandler, getQuery, getRequestURL, sendRedirect } from 'h3'
 import { withQuery } from 'ufo'
 import * as providerPresets from '../../providers'
-import { configMerger, convertObjectToSnakeCase } from '../utils/oidc'
+import { configMerger, convertObjectToSnakeCase, resolveProviderUrls } from '../utils/oidc'
 import { clearUserSession, getUserSession } from '../utils/session'
 
 export function logoutEventHandler({ onSuccess }: OAuthConfig<UserSession>) {
   return eventHandler(async (event: H3Event) => {
     // TODO: Is this the best way to get the current provider?
     const provider = event.path.split('/')[2] as ProviderKeys
-    const config = configMerger(
+    const config = resolveProviderUrls(configMerger(
       useRuntimeConfig().oidc.providers[provider] as OidcProviderConfig,
       providerPresets[provider as keyof typeof providerPresets],
-    )
+    ))
 
     if (config.logoutUrl) {
       const logoutParams = getQuery(event)

@@ -22,6 +22,7 @@ import {
   convertObjectToSnakeCase,
   convertTokenRequestToType,
   oidcErrorHandler,
+  resolveProviderUrls,
   useOidcLogger,
 } from '../utils/oidc'
 import { createProviderFetch } from '../utils/provider'
@@ -34,7 +35,7 @@ function callbackEventHandler({ onSuccess }: OAuthConfig<UserSession>) {
   return eventHandler(async (event: H3Event) => {
     const provider = event.path.split('/')[2] as ProviderKeys
     const runtimeProviderConfig = useRuntimeConfig().oidc.providers[provider] as OidcProviderConfig
-    const config = configMerger(runtimeProviderConfig, providerPresets[provider])
+    const config = resolveProviderUrls(configMerger(runtimeProviderConfig, providerPresets[provider]))
     const hasConfiguredCallbackRedirectUrl =
       typeof runtimeProviderConfig?.callbackRedirectUrl === 'string'
 
