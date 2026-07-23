@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { generateProviderUrl } from '../../../src/runtime/server/utils/config'
 import { ping } from '../../../src/runtime/providers/ping'
+import { keycloak } from '../../../src/runtime/providers/keycloak'
 
 describe('Ping provider URL generation', () => {
   it('should generate authorization URL from baseUrl', () => {
@@ -58,5 +59,31 @@ describe('Ping provider URL generation', () => {
     expect(ping.requiredProperties).toContain('authorizationUrl')
     expect(ping.requiredProperties).toContain('tokenUrl')
     expect(ping.requiredProperties).toContain('redirectUri')
+  })
+})
+
+describe('Existing providers still work', () => {
+  it('should generate correct Keycloak authorization URL', () => {
+    const baseUrl = 'http://localhost:8080/realms/nuxt-oidc-test'
+    const url = generateProviderUrl(baseUrl, keycloak.authorizationUrl as string)
+    expect(url).toBe('http://localhost:8080/realms/nuxt-oidc-test/protocol/openid-connect/auth')
+  })
+
+  it('should generate correct Keycloak token URL', () => {
+    const baseUrl = 'http://localhost:8080/realms/nuxt-oidc-test'
+    const url = generateProviderUrl(baseUrl, keycloak.tokenUrl as string)
+    expect(url).toBe('http://localhost:8080/realms/nuxt-oidc-test/protocol/openid-connect/token')
+  })
+
+  it('should generate correct Keycloak userinfo URL', () => {
+    const baseUrl = 'http://localhost:8080/realms/nuxt-oidc-test'
+    const url = generateProviderUrl(baseUrl, keycloak.userInfoUrl as string)
+    expect(url).toBe('http://localhost:8080/realms/nuxt-oidc-test/protocol/openid-connect/userinfo')
+  })
+
+  it('should generate correct Keycloak logout URL', () => {
+    const baseUrl = 'http://localhost:8080/realms/nuxt-oidc-test'
+    const url = generateProviderUrl(baseUrl, keycloak.logoutUrl as string)
+    expect(url).toBe('http://localhost:8080/realms/nuxt-oidc-test/protocol/openid-connect/logout')
   })
 })
