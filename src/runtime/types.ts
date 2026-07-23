@@ -8,15 +8,16 @@ import type { EncryptedToken, JwtPayload } from './server/utils/security'
 export type ProviderKeys =
   | 'apple'
   | 'auth0'
+  | 'cognito'
   | 'entra'
   | 'github'
   | 'keycloak'
-  | 'oidc'
-  | 'cognito'
-  | 'zitadel'
-  | 'paypal'
-  | 'microsoft'
   | 'logto'
+  | 'microsoft'
+  | 'oidc'
+  | 'paypal'
+  | 'ping'
+  | 'zitadel'
 export type ProviderKeysWithDev = ProviderKeys | 'dev'
 
 export interface ProviderConfigs {
@@ -29,6 +30,7 @@ export interface ProviderConfigs {
   microsoft: typeof _PROVIDERS.microsoft
   oidc: typeof _PROVIDERS.oidc
   paypal: typeof _PROVIDERS.paypal
+  ping: typeof _PROVIDERS.ping
   zitadel: typeof _PROVIDERS.zitadel
   logto: typeof _PROVIDERS.logto
 }

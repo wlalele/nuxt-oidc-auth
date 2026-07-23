@@ -14,7 +14,7 @@ import { createError, deleteCookie, sendRedirect, useSession } from 'h3'
 import { createHooks } from 'hookable'
 import { useStorage } from 'nitropack/runtime'
 import * as providerPresets from '../../providers'
-import { configMerger, refreshAccessToken, useOidcLogger } from './oidc'
+import { configMerger, refreshAccessToken, resolveProviderUrls, useOidcLogger } from './oidc'
 import { decryptToken, encryptToken } from './security'
 import { resolveMissingPersistentSessionMode } from './session-options'
 
@@ -134,10 +134,10 @@ export async function refreshUserSession(event: H3Event, options: SessionBehavio
   const tokenKey = process.env.NUXT_OIDC_TOKEN_KEY as string
   const refreshToken = await decryptToken(persistentSession.refreshToken, tokenKey)
 
-  const config = configMerger(
+  const config = resolveProviderUrls(configMerger(
     useRuntimeConfig().oidc.providers[provider] as OidcProviderConfig,
     providerPresets[provider],
-  )
+  ))
 
   let tokenRefreshResponse: Awaited<ReturnType<typeof refreshAccessToken>>
   try {

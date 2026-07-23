@@ -6,6 +6,7 @@ import { createDefu } from 'defu'
 import { sendRedirect } from 'h3'
 import { normalizeURL } from 'ufo'
 import { createProviderFetch } from './provider'
+import { generateProviderUrl } from './config'
 import { textToBase64 } from './encoding'
 import { parseJwtToken } from './security'
 import { clearUserSession } from './session'
@@ -23,6 +24,36 @@ export const configMerger = createDefu((obj, key, value) => {
     return true
   }
 })
+
+const PLACEHOLDER_RE = /\{(.*?)\}/g
+
+export function resolveProviderUrls(config: OidcProviderConfig): OidcProviderConfig {
+  if (!config.baseUrl) return config
+
+  let resolvedBaseUrl = config.baseUrl
+
+  const placeholders = resolvedBaseUrl.matchAll(PLACEHOLDER_RE)
+  for (const placeholderMatch of placeholders) {
+    const placeholderKey = placeholderMatch[1]
+    if (!placeholderKey) continue
+    if (Object.hasOwn(config, placeholderKey)) {
+      const placeholderValue = config[placeholderKey as keyof OidcProviderConfig]
+      if (placeholderValue !== undefined && typeof placeholderValue !== 'object') {
+        resolvedBaseUrl = resolvedBaseUrl.replace(`{${placeholderKey}}`, String(placeholderValue))
+      }
+    }
+  }
+
+  const urlKeys = ['authorizationUrl', 'tokenUrl', 'userInfoUrl', 'logoutUrl'] as const
+  for (const key of urlKeys) {
+    const value = config[key] as string | undefined
+    if (value && !value.startsWith('https://') && !value.startsWith('http://')) {
+      ;(config as Record<string, unknown>)[key] = generateProviderUrl(resolvedBaseUrl, value)
+    }
+  }
+
+  return config
+}
 
 export async function refreshAccessToken(refreshToken: string, config: OidcProviderConfig) {
   const logger = useOidcLogger()

@@ -21,11 +21,10 @@ import {
 import { defu } from 'defu'
 import { setupDevToolsUI } from './devtools'
 import * as providerPresets from './runtime/providers'
-import { generateProviderUrl, replaceInjectedParameters } from './runtime/server/utils/config'
+import { replaceInjectedParameters } from './runtime/server/utils/config'
 
 // oxlint-disable-next-line typescript-eslint/unbound-method -- createResolver returns a standalone resolve function
 const { resolve } = createResolver(import.meta.url)
-const PLACEHOLDER_RE = /\{(.*?)\}/g
 
 const DEFAULTS: ModuleOptions = {
   enabled: true,
@@ -231,50 +230,6 @@ export {}
     // Per provider tasks
     providers.forEach((provider) => {
       const providerConfig = options.providers[provider] as OidcProviderConfig
-      const baseUrl =
-        process.env[`NUXT_OIDC_PROVIDERS_${provider.toUpperCase()}_BASE_URL`] ||
-        providerConfig.baseUrl ||
-        providerPresets[provider].baseUrl
-
-      // Generate provider routes
-      if (baseUrl) {
-        let _baseUrl = baseUrl
-        const placeholders = baseUrl.matchAll(PLACEHOLDER_RE)
-        for (const placeholderMatch of placeholders) {
-          const placeholderKey = placeholderMatch[1]
-          if (!placeholderKey) {
-            continue
-          }
-          if (Object.hasOwn(providerConfig, placeholderKey)) {
-            const placeholderValue = providerConfig[placeholderKey as keyof OidcProviderConfig]
-            if (placeholderValue !== undefined && typeof placeholderValue !== 'object') {
-              _baseUrl = _baseUrl.replace(`{${placeholderKey}}`, String(placeholderValue))
-            }
-          }
-        }
-        providerConfig.authorizationUrl = generateProviderUrl(
-          _baseUrl as string,
-          providerPresets[provider].authorizationUrl,
-        )
-        providerConfig.tokenUrl = generateProviderUrl(
-          _baseUrl as string,
-          providerPresets[provider].tokenUrl,
-        )
-        if (
-          providerPresets[provider].userInfoUrl &&
-          !providerPresets[provider].userInfoUrl.startsWith('https')
-        )
-          providerConfig.userInfoUrl = generateProviderUrl(
-            _baseUrl as string,
-            providerPresets[provider].userInfoUrl,
-          )
-        if (providerPresets[provider].logoutUrl)
-          providerConfig.logoutUrl = generateProviderUrl(
-            _baseUrl as string,
-            providerPresets[provider].logoutUrl,
-          )
-      }
-
       // Replace placeholder parameters from provider presets
       replaceInjectedParameters(['clientId'], providerConfig, providerPresets[provider], provider)
 
