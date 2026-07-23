@@ -236,45 +236,6 @@ export {}
         providerConfig.baseUrl ||
         providerPresets[provider].baseUrl
 
-      // Generate provider routes
-      if (baseUrl) {
-        let _baseUrl = baseUrl
-        const placeholders = baseUrl.matchAll(PLACEHOLDER_RE)
-        for (const placeholderMatch of placeholders) {
-          const placeholderKey = placeholderMatch[1]
-          if (!placeholderKey) {
-            continue
-          }
-          if (Object.hasOwn(providerConfig, placeholderKey)) {
-            const placeholderValue = providerConfig[placeholderKey as keyof OidcProviderConfig]
-            if (placeholderValue !== undefined && typeof placeholderValue !== 'object') {
-              _baseUrl = _baseUrl.replace(`{${placeholderKey}}`, String(placeholderValue))
-            }
-          }
-        }
-        providerConfig.authorizationUrl = generateProviderUrl(
-          _baseUrl as string,
-          providerPresets[provider].authorizationUrl,
-        )
-        providerConfig.tokenUrl = generateProviderUrl(
-          _baseUrl as string,
-          providerPresets[provider].tokenUrl,
-        )
-        if (
-          providerPresets[provider].userInfoUrl &&
-          !providerPresets[provider].userInfoUrl.startsWith('https')
-        )
-          providerConfig.userInfoUrl = generateProviderUrl(
-            _baseUrl as string,
-            providerPresets[provider].userInfoUrl,
-          )
-        if (providerPresets[provider].logoutUrl)
-          providerConfig.logoutUrl = generateProviderUrl(
-            _baseUrl as string,
-            providerPresets[provider].logoutUrl,
-          )
-      }
-
       // Replace placeholder parameters from provider presets
       replaceInjectedParameters(['clientId'], providerConfig, providerPresets[provider], provider)
 

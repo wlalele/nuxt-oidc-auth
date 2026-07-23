@@ -17,6 +17,7 @@ export type ProviderKeys =
   | 'paypal'
   | 'microsoft'
   | 'logto'
+  | 'pingfederate'
 export type ProviderKeysWithDev = ProviderKeys | 'dev'
 
 export interface ProviderConfigs {
@@ -31,6 +32,7 @@ export interface ProviderConfigs {
   paypal: typeof _PROVIDERS.paypal
   zitadel: typeof _PROVIDERS.zitadel
   logto: typeof _PROVIDERS.logto
+  pingfederate: typeof _PROVIDERS.pingfederate
 }
 
 export interface OAuthConfig<UserSession> {

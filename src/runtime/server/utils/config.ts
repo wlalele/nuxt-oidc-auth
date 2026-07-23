@@ -1,48 +1,58 @@
-import type { ProviderConfigs, ProviderKeys } from '../../types'
-import type { OidcProviderConfig } from './provider'
-import { cleanDoubleSlashes, joinURL, parseURL, withHttps, withoutTrailingSlash } from 'ufo'
-import { snakeCase } from './string'
-
-export interface ValidationResult<T> {
-  valid: boolean
-  missingProperties?: string[]
-  config: T
-}
-
-/**
- * Validate a configuration object
- * @param config The configuration object to validate
- * @returns ValidationResult object with the validation result and the validated config stripped of optional properties
- */
-export function validateConfig<T>(config: T, requiredProps: string[]): ValidationResult<T> {
-  const configObject = config as Record<string, unknown>
-  const missingProperties: string[] = []
-  let valid = true
-  for (const prop of requiredProps) {
-    if (!Object.hasOwn(configObject, prop)) {
-      valid = false
-      missingProperties.push(prop.toString())
-      continue
-    }
-
-    const value = configObject[prop]
-    if (
-      value === undefined ||
-      value === null ||
-      (typeof value === 'string' && value.trim().length === 0)
-    ) {
-      valid = false
-      missingProperties.push(prop.toString())
-    }
-  }
-  return { valid, missingProperties, config }
-}
-
 export function generateProviderUrl(baseUrl: string, relativeUrl?: string) {
   const parsedUrl = parseURL(baseUrl)
   return parsedUrl.protocol
     ? withoutTrailingSlash(cleanDoubleSlashes(joinURL(baseUrl, '/', relativeUrl || '')))
     : withoutTrailingSlash(cleanDoubleSlashes(withHttps(joinURL(baseUrl, '/', relativeUrl || ''))))
+}
+
+export function resolveProviderUrl(
+  config: OidcProviderConfig,
+  preset: any,
+  urlKey: keyof OidcProviderConfig,
+) {
+  const configUrl = config[urlKey] as string
+  const presetUrl = preset[urlKey] as string
+
+  // If the config already has a fully qualified URL, use it (backward compatibility)
+  if (configUrl && (configUrl.startsWith('http') || configUrl.startsWith('//'))) {
+    return configUrl
+  }
+
+  // If baseUrl is provided, generate the URL from baseUrl + preset relative path
+  if (config.baseUrl) {
+    return generateProviderUrl(config.baseUrl, presetUrl || '')
+  }
+
+  // Fallback to the preset URL
+  return presetUrl || configUrl || ''
+}
+
+export function resolveRedirectUri(
+  config: OidcProviderConfig,
+  preset: any,
+  provider: ProviderKeys,
+) {
+  const configUrl = config.redirectUri as string
+  const presetUrl = preset.redirectUri as string
+
+  // If the config already has a fully qualified URL, use it (backward compatibility)
+  if (configUrl && (configUrl.startsWith('http') || configUrl.startsWith('//'))) {
+    return configUrl
+  }
+
+  // Check for environment variable
+  const envUrl = process.env[`NUXT_OIDC_PROVIDERS_${provider.toUpperCase()}_REDIRECT_URI`]
+  if (envUrl) {
+    return envUrl
+  }
+
+  // Fallback to the preset URL
+  if (presetUrl) {
+    return presetUrl
+  }
+
+  // Fallback to the config URL
+  return configUrl || ''
 }
 
 export function replaceInjectedParameters(

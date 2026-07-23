@@ -38,6 +38,14 @@ function loginEventHandler() {
       return oidcErrorHandler(event, 'Invalid configuration')
     }
 
+    // Resolve URLs at runtime
+    const preset = providerPresets[provider]
+    config.authorizationUrl = resolveProviderUrl(config, preset, 'authorizationUrl')
+    config.tokenUrl = resolveProviderUrl(config, preset, 'tokenUrl')
+    config.userInfoUrl = resolveProviderUrl(config, preset, 'userInfoUrl')
+    config.logoutUrl = resolveProviderUrl(config, preset, 'logoutUrl')
+    config.redirectUri = resolveRedirectUri(config, preset, provider)
+
     // Initialize auth session
     const session = await useAuthSession(event, config.sessionConfiguration?.maxAuthSessionAge)
     await session.clear()
@@ -47,6 +55,7 @@ function loginEventHandler() {
       referer: getRequestHeader(event, 'referer'),
       nonce: undefined,
     })
+
 
     // Get client side query parameters
     const clientQueryParams = getQuery(event)
