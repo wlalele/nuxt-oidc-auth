@@ -44,6 +44,7 @@ function loginEventHandler() {
     config.tokenUrl = resolveProviderUrl(config, preset, 'tokenUrl')
     config.userInfoUrl = resolveProviderUrl(config, preset, 'userInfoUrl')
     config.logoutUrl = resolveProviderUrl(config, preset, 'logoutUrl')
+    config.redirectUri = resolveRedirectUri(config, preset, provider)
 
     // Initialize auth session
     const session = await useAuthSession(event, config.sessionConfiguration?.maxAuthSessionAge)
